@@ -8,8 +8,6 @@ load_dotenv()
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-SESSION = os.getenv("SESSION")
-
 # List of channel/group IDs to monitor
 # Example in .env:  CHAT_IDS=-1001111111111,-1002222222222
 CHAT_IDS = list(map(int, os.getenv("CHAT_IDS", "").split(",")))
@@ -23,3 +21,4 @@ if raw_dur:
     for pair in raw_dur.split(","):
         chat_id, duration = pair.split(":")
         ID_DUR[int(chat_id)] = int(duration)
+
