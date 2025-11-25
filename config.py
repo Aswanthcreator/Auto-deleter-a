@@ -1,17 +1,25 @@
+import os
+from dotenv import load_dotenv
+
+# Load values from .env file
+load_dotenv()
+
+# Telegram API credentials (loaded from environment variables)
+API_ID = int(os.getenv("API_ID"))
+API_HASH = os.getenv("API_HASH")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+SESSION = os.getenv("SESSION")
+
 # List of channel/group IDs to monitor
-CHAT_IDS = [
-    -1001111111111,
-    -1002222222222
-]
+# Example in .env:  CHAT_IDS=-1001111111111,-1002222222222
+CHAT_IDS = list(map(int, os.getenv("CHAT_IDS", "").split(",")))
 
-# Duration (in seconds) for each chat_id before messages are auto-deleted
-ID_DUR = {
-    -1001111111111: 30,   # in seconds
-    -1002222222222: 180   # in seconds
-}
+# Duration (in seconds) for each chat_id before auto-delete
+# Example in .env:  ID_DUR=-1001111111111:30,-1002222222222:180
+ID_DUR = {}
+raw_dur = os.getenv("ID_DUR", "")
 
-# Telegram API credentials (replace with your own in private .env or config file)
-API_ID = "YOUR_API_ID"
-API_HASH = "YOUR_API_HASH"
-BOT_TOKEN = "YOUR_BOT_TOKEN"
-SESSION = "YOUR_SESSION_STRING"
+if raw_dur:
+    for pair in raw_dur.split(","):
+        chat_id, duration = pair.split(":")
+        ID_DUR[int(chat_id)] = int(duration)
