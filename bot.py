@@ -10,7 +10,7 @@ import psutil
 from pyrogram import Client, filters
 from pyrogram.handlers import MessageHandler
 from pyrogram.errors import FloodWait, ChannelPrivate, MessageDeleteForbidden
-from config import API_ID, API_HASH, BOT_TOKEN, SESSION, CHAT_IDS, ID_DUR
+from config import API_ID, API_HASH, BOT_TOKEN,CHAT_IDS, ID_DUR
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 logging.basicConfig(
@@ -283,4 +283,5 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
+
         logger.info("🛑 Bot stopped manually by user.")
