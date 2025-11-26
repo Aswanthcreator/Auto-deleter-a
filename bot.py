@@ -207,7 +207,7 @@ async def main():
     logger.info("⏰ Scheduler started with regular cleanup every 4 minutes.")
 
     app = Client("AutoWiperBot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
-    user = Client("UserAutoWiper", api_id=API_ID, api_hash=API_HASH, session_string=SESSION)
+    user = None
 
     app.add_handler(MessageHandler(
         handle_bot_commands,
@@ -285,3 +285,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
 
         logger.info("🛑 Bot stopped manually by user.")
+
