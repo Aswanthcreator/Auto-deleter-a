@@ -181,19 +181,8 @@ async def delete_messages(reply=None):
         queue_size = sum(1 for job in scheduler.get_jobs() if job.id.startswith("delete_"))
         await reply.edit_text(f"✅ Cleanup complete! 📦 {queue_size} deletions scheduled.")
 
-async def heartbeat():
-    while not shutdown_event.is_set():
-        try:
-            uptime = str(datetime.now() - start_time).split('.')[0]
-            active_jobs = len(scheduler.get_jobs())
-            logger.info(f"💓 Heartbeat | ⏳ Up: {uptime} | 🛠️ Jobs: {active_jobs}")
-            await asyncio.sleep(300)
-        except Exception as e:
-            logger.error(f"💔 Heartbeat failed: {e}")
-            await asyncio.sleep(60)
-
 async def main():
-    global app, user, scheduler, shutdown_event, OWNER_ID
+    global app, scheduler, shutdown_event, OWNER_ID
 
     loop = asyncio.get_running_loop()
     shutdown_event = asyncio.Event()
@@ -206,48 +195,33 @@ async def main():
     scheduler.add_job(delete_messages, 'interval', minutes=4, id="regular_cleanup")
     logger.info("⏰ Scheduler started with regular cleanup every 4 minutes.")
 
+    # ONLY bot client
     app = Client("AutoWiperBot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
-    user = None
 
+    # Bot command handlers
     app.add_handler(MessageHandler(
         handle_bot_commands,
         filters=filters.command(["start", "status", "ping"]) & filters.private
     ))
 
-    user.add_handler(MessageHandler(
+    # Auto-delete for messages in groups
+    app.add_handler(MessageHandler(
         handle_messages,
-        filters=filters.chat(CHAT_IDS) & ~filters.pinned_message
-    ))
-
-    user.add_handler(MessageHandler(
-        handle_user_commands,
-        filters.private & filters.command(["delete", "update", "restart", "chats"])
+        filters.chat(CHAT_IDS) & ~filters.pinned_message
     ))
 
     await app.start()
-    await user.start()
 
-    me = await user.get_me()
+    # Get bot owner (first user who presses /start in private)
+    me = await app.get_me()
     OWNER_ID = me.id
-    logger.info(f"🎯 Owner ID auto-set to: {OWNER_ID} (@{me.username or 'Unknown'})")
-
-    try:
-        await user.send_message(
-            me.id,
-            "✅ **Auto-Cleaner Bot Started!**\n\n"
-            f"📊 Monitoring: `{len(CHAT_IDS)}` groups\n"
-            f"🗑️ Auto-delete enabled\n"
-            f"🛠️ Admin commands active for you only.\n"
-            f"ℹ️ Use `/status`, `/chats`, `/delete` as needed."
-        )
-    except Exception as e:
-        logger.error(f"📩 Failed to send startup message: {e}")
+    logger.info(f"🎯 Owner ID auto-set to: {OWNER_ID}")
 
     heartbeat_task = loop.create_task(heartbeat())
 
     try:
         await delete_messages()
-        logger.info("🚀 Bot is now running on your VPS! 🌐")
+        logger.info("🚀 AutoWiperBot is now running on Render!")
 
         if not CHAT_IDS:
             logger.warning("⚠️ No CHAT_IDS configured — bot will not monitor any chats.")
@@ -269,7 +243,6 @@ async def main():
 
         await asyncio.gather(
             app.stop() if app and app.is_connected else asyncio.sleep(0),
-            user.stop() if user and user.is_connected else asyncio.sleep(0),
             return_exceptions=True
         )
 
@@ -278,11 +251,3 @@ async def main():
             logger.info("📋 Scheduler stopped.")
 
         logger.info("✅ Bot stopped gracefully. Goodbye! 👋")
-
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-
-        logger.info("🛑 Bot stopped manually by user.")
-
