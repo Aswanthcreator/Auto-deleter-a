@@ -187,7 +187,7 @@ async def main():
     scheduler = AsyncIOScheduler(event_loop=loop)
     scheduler.start()
     # Regular tick — used primarily for logging/housekeeping in BOT-only mode
-    scheduler.add_job(lambda: asyncio.create_task(delete_messages()), 'interval', minutes=4, id="regular_cleanup")
+    scheduler.add_job(delete_messages, 'interval', minutes=4, id="regular_cleanup")
     logger.info("⏰ Scheduler started with regular cleanup every 4 minutes.")
 
     # Bot client (BOT only)
@@ -252,3 +252,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         logger.info("🛑 Bot stopped manually by user.")
     
+
