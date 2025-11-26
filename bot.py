@@ -4,6 +4,9 @@ import os
 import signal
 from datetime import datetime, timedelta
 import uuid
+from fastapi import FastAPI
+import uvicorn
+import threading
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import psutil
 from pyrogram import Client, filters, idle
@@ -247,9 +250,18 @@ async def main():
 
 
 if __name__ == "__main__":
+    # Start dummy FastAPI server for Render port binding
+    threading.Thread(target=run_dummy_server, daemon=True).start()
+
+    # Fix APScheduler "no running event loop" issue
+    scheduler.add_job(lambda: asyncio.run(delete_messages()), 'interval', minutes=4, id="regular_cleanup")
+
     try:
+        # Start your bot normally
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("🛑 Bot stopped manually by user.")
-    
+    except Exception as e:
+        logger.error(f"❌ Unexpected error: {e}")
+
 
